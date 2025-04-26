@@ -1,5 +1,17 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut } from "firebase/auth";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signInWithRedirect, 
+  signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
+  onAuthStateChanged,
+  type User
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -34,6 +46,44 @@ export const signInWithGoogleRedirect = () => {
   signInWithRedirect(auth, googleProvider);
 };
 
+// Sign up with email and password
+export const signUpWithEmail = async (email: string, password: string, displayName: string) => {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    
+    // Set display name for the newly created user
+    if (result.user) {
+      await updateProfile(result.user, { displayName });
+    }
+    
+    return result.user;
+  } catch (error) {
+    console.error("Error signing up with email:", error);
+    throw error;
+  }
+};
+
+// Sign in with email and password
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("Error signing in with email:", error);
+    throw error;
+  }
+};
+
+// Reset password
+export const resetPassword = async (email: string) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    throw error;
+  }
+};
+
 // Sign out
 export const logOut = async () => {
   try {
@@ -41,6 +91,31 @@ export const logOut = async () => {
   } catch (error) {
     console.error("Error signing out:", error);
     throw error;
+  }
+};
+
+// Listen for auth state changes
+export const subscribeToAuthChanges = (callback: (user: User | null) => void) => {
+  return onAuthStateChanged(auth, callback);
+};
+
+// Get current user
+export const getCurrentUser = () => {
+  return auth.currentUser;
+};
+
+// Get current user's ID token
+export const getCurrentUserIdToken = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    return null;
+  }
+  
+  try {
+    return await user.getIdToken();
+  } catch (error) {
+    console.error("Error getting ID token:", error);
+    return null;
   }
 };
 
