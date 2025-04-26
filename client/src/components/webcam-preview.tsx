@@ -10,7 +10,7 @@ interface WebcamPreviewProps {
 
 export function WebcamPreview({ className }: WebcamPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { isActive, startWebcam, stopWebcam } = useWebcam(videoRef);
+  const { isWebcamActive, startWebcam, stopWebcam } = useWebcam(videoRef);
   const [hasInitialized, setHasInitialized] = useState(false);
 
   // Initialize webcam when component mounts
@@ -21,7 +21,7 @@ export function WebcamPreview({ className }: WebcamPreviewProps) {
   }, [hasInitialized]);
 
   const toggleCamera = () => {
-    if (isActive) {
+    if (isWebcamActive) {
       stopWebcam();
     } else {
       startWebcam();
@@ -30,7 +30,7 @@ export function WebcamPreview({ className }: WebcamPreviewProps) {
 
   return (
     <div className={cn("bg-gray-800 aspect-video relative rounded-t-lg overflow-hidden", className)}>
-      {isActive ? (
+      {isWebcamActive ? (
         <video
           ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover"
@@ -61,7 +61,7 @@ export function WebcamPreview({ className }: WebcamPreviewProps) {
           onClick={toggleCamera}
           size="icon"
           className="p-2 bg-white bg-opacity-25 rounded-full text-white hover:bg-opacity-40"
-          aria-label={isActive ? "Turn off camera" : "Turn on camera"}
+          aria-label={isWebcamActive ? "Turn off camera" : "Turn on camera"}
         >
           <Video className="h-5 w-5" />
         </Button>

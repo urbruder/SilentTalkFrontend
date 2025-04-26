@@ -1,7 +1,7 @@
 import { useState, useEffect, RefObject } from "react";
 
 export function useWebcam(videoRef: RefObject<HTMLVideoElement>) {
-  const [isActive, setIsActive] = useState(false);
+  const [isWebcamActive, setIsWebcamActive] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +18,7 @@ export function useWebcam(videoRef: RefObject<HTMLVideoElement>) {
         videoRef.current.srcObject = mediaStream;
       }
       
-      setIsActive(true);
+      setIsWebcamActive(true);
     } catch (err) {
       setError("Failed to access camera. Please check permissions.");
       console.error("Error accessing webcam:", err);
@@ -36,7 +36,7 @@ export function useWebcam(videoRef: RefObject<HTMLVideoElement>) {
       }
       
       setStream(null);
-      setIsActive(false);
+      setIsWebcamActive(false);
     }
   };
 
@@ -51,5 +51,5 @@ export function useWebcam(videoRef: RefObject<HTMLVideoElement>) {
     };
   }, [stream]);
 
-  return { isActive, startWebcam, stopWebcam, error };
+  return { isWebcamActive, startWebcam, stopWebcam, error };
 }

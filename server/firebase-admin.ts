@@ -1,17 +1,15 @@
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
 // Initialize Firebase Admin SDK with default credentials (environment variables)
 // In production, set GOOGLE_APPLICATION_CREDENTIALS env var to your service account key path
-if (!admin.apps.length) {
-  admin.initializeApp({
-    projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-    // When deployed in Google Cloud, this will use the default credentials
-    // Otherwise, service account credentials set in environment variables are used
-  });
-}
+const firebaseApp = admin.initializeApp({
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  // When deployed in Google Cloud, this will use the default credentials
+  // Otherwise, service account credentials set in environment variables are used
+});
 
-export const auth = admin.auth();
-export const firestore = admin.firestore();
+export const auth = admin.auth(firebaseApp);
+export const firestore = admin.firestore(firebaseApp);
 
 // Verify Firebase ID token
 export async function verifyIdToken(idToken: string): Promise<admin.auth.DecodedIdToken> {
@@ -52,4 +50,4 @@ export async function createFirebaseUser(
   }
 }
 
-export default admin;
+export default firebaseApp;
