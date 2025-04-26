@@ -1,253 +1,143 @@
-import { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "wouter";
-import { MessageSquare, Menu, X, Moon, Sun, LogOut, User } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/use-theme";
-import { AvatarPlaceholder } from "@/components/ui/avatar-placeholder";
 import { useAuth } from "@/contexts/auth-context";
-import { logOut } from "@/lib/firebase";
 import { AuthModal } from "@/components/auth/auth-modal";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
+import { UserDropdown } from "@/components/auth/user-dropdown";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Menu, X } from "lucide-react";
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/sign-language", label: "Sign Language" },
-  { href: "/speech-to-text", label: "Speech-to-Text" },
-  { href: "/text-to-speech", label: "Text-to-Speech" },
-  { href: "/settings", label: "Settings" },
+const navigation = [
+  { name: "Home", href: "/" },
+  { name: "Sign Language", href: "/sign-language" },
+  { name: "Speech to Text", href: "/speech-to-text" },
+  { name: "Text to Speech", href: "/text-to-speech" },
 ];
 
-export default function Navbar() {
+export function Navbar() {
+  const { user, loading } = useAuth();
   const [location] = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
-  const { user } = useAuth();
-  const { toast } = useToast();
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logOut();
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out",
-      });
-    } catch (error) {
-      console.error("Error logging out:", error);
-      toast({
-        title: "Error",
-        description: "Failed to log out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    if (!user) return "GT";
-
-    if (user.displayName) {
-      return user.displayName
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .substring(0, 2);
-    } else if (user.email) {
-      return user.email.substring(0, 2).toUpperCase();
-    }
-
-    return "GT";
-  };
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="flex items-center gap-2 text-primary font-bold text-xl">
-                <MessageSquare className="h-6 w-6" />
-                SilentTalk
-              </Link>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium",
-                    location === link.href
-                      ? "border-primary text-foreground"
-                      : "border-transparent text-muted-foreground hover:border-muted hover:text-foreground"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              onClick={toggleTheme}
+    <header className="bg-background/80 backdrop-blur-md sticky top-0 z-40 w-full border-b">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8" aria-label="Global">
+        <div className="flex lg:flex-1">
+          <Link href="/" className="flex items-center space-x-2">
+            <span className="text-2xl font-bold text-primary bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
+              SilentTalk
+            </span>
+          </Link>
+        </div>
+
+        {isMobile ? (
+          <div className="flex lg:hidden">
+            <button
+              type="button"
+              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-            
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full"
-                    aria-label="Open user menu"
-                  >
-                    <AvatarPlaceholder initials={getUserInitials()} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>{user.displayName || user.email}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="cursor-pointer w-full">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <span className="sr-only">Open main menu</span>
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" aria-hidden="true" />
+              ) : (
+                <Menu className="h-6 w-6" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+        ) : (
+          <div className="hidden lg:flex lg:gap-x-8">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`text-sm font-semibold leading-6 ${
+                  location === item.href
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end items-center space-x-4">
+          {loading ? (
+            <div className="h-9 w-24 bg-muted rounded-md animate-pulse"></div>
+          ) : user ? (
+            <UserDropdown />
+          ) : (
+            <AuthModal
+              trigger={<Button variant="default">Sign In</Button>}
+              title="Welcome to SilentTalk"
+              description="Sign in to your account to access all features"
+            />
+          )}
+        </div>
+      </nav>
+
+      {/* Mobile menu */}
+      {isMobile && mobileMenuOpen && (
+        <div className="lg:hidden">
+          <div className="space-y-1 px-4 py-3 border-b">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`block py-2 px-3 rounded-md text-base font-medium ${
+                  location === item.href
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+          <div className="px-4 py-3 border-t border-gray-200">
+            {loading ? (
+              <div className="h-9 w-full bg-muted rounded-md animate-pulse"></div>
+            ) : user ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    {user.photoURL ? (
+                      <img
+                        className="h-10 w-10 rounded-full"
+                        src={user.photoURL}
+                        alt={user.displayName || "User"}
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
+                        {user.displayName
+                          ? user.displayName.charAt(0).toUpperCase()
+                          : "U"}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{user.displayName}</span>
+                    <span className="text-xs text-muted-foreground">{user.email}</span>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/settings">Settings</Link>
+                </Button>
+              </div>
             ) : (
-              <AuthModal 
-                trigger={
-                  <Button size="sm" variant="default">Sign In</Button>
-                }
+              <AuthModal
+                trigger={<Button className="w-full">Sign In</Button>}
+                title="Welcome to SilentTalk"
+                description="Sign in to your account to access all features"
               />
             )}
           </div>
-          <div className="-mr-2 flex items-center sm:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-              onClick={toggleMobileMenu}
-            >
-              {mobileMenuOpen ? (
-                <X className="block h-6 w-6" />
-              ) : (
-                <Menu className="block h-6 w-6" />
-              )}
-            </Button>
-          </div>
         </div>
-      </div>
-
-      {/* Mobile menu */}
-      <div className={`sm:hidden ${mobileMenuOpen ? "block" : "hidden"}`}>
-        <div className="pt-2 pb-3 space-y-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "block pl-3 pr-4 py-2 border-l-4 text-base font-medium",
-                location === link.href
-                  ? "bg-primary-50 border-primary text-primary-700"
-                  : "border-transparent text-muted-foreground hover:bg-muted hover:border-muted hover:text-foreground"
-              )}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-        <div className="pt-4 pb-3 border-t border-border">
-          {user ? (
-            <>
-              <div className="flex items-center px-4">
-                <div className="flex-shrink-0">
-                  <AvatarPlaceholder initials={getUserInitials()} size="md" />
-                </div>
-                <div className="ml-3">
-                  <div className="text-base font-medium text-foreground">{user.displayName || "User"}</div>
-                  <div className="text-sm font-medium text-muted-foreground">{user.email}</div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="ml-auto"
-                  aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                  onClick={toggleTheme}
-                >
-                  {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                </Button>
-              </div>
-              <div className="mt-3 space-y-1">
-                <Link
-                  href="/settings"
-                  className="block px-4 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Profile
-                </Link>
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="block w-full text-left px-4 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted"
-                >
-                  Log out
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="px-4 py-2">
-              <AuthModal
-                trigger={
-                  <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>
-                    Sign In
-                  </Button>
-                }
-              />
-              <div className="flex items-center justify-end mt-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                  onClick={toggleTheme}
-                >
-                  {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </nav>
+      )}
+    </header>
   );
 }

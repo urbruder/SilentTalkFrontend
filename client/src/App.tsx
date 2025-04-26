@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "./hooks/use-theme";
 import { AuthProvider } from "./contexts/auth-context";
-import Navbar from "./components/layout/Navbar";
+import { Navbar } from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import Home from "./pages/home";
 import SignLanguage from "./pages/sign-language";

@@ -1,105 +1,67 @@
+import { Github } from "lucide-react";
 import { Link } from "wouter";
-import { MessageSquare, Twitter, Facebook, Instagram, Github } from "lucide-react";
-
-const footerLinks = {
-  features: [
-    { label: "Sign Language", href: "/sign-language" },
-    { label: "Speech-to-Text", href: "/speech-to-text" },
-    { label: "Text-to-Speech", href: "/text-to-speech" },
-    { label: "Live Chat", href: "#" },
-  ],
-  support: [
-    { label: "Help Center", href: "#" },
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Contact Us", href: "#" },
-  ],
-  company: [
-    { label: "About", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Careers", href: "#" },
-    { label: "Press", href: "#" },
-  ],
-};
-
-const socialLinks = [
-  { icon: Twitter, label: "Twitter" },
-  { icon: Facebook, label: "Facebook" },
-  { icon: Instagram, label: "Instagram" },
-  { icon: Github, label: "GitHub" },
-];
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-800 text-white">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="md:col-span-1">
-            <div className="flex items-center gap-2 text-white font-bold text-xl mb-4">
-              <MessageSquare className="h-6 w-6" />
+    <footer className="border-t py-6 md:py-8">
+      <div className="container flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-green-500">
               SilentTalk
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Bridge the Silence — Talk Without Words
+          </p>
+        </div>
+        <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+          <div className="flex flex-col gap-2">
+            <h4 className="text-sm font-semibold">Features</h4>
+            <div className="flex flex-col gap-1">
+              <Link href="/sign-language" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Sign Language
+              </Link>
+              <Link href="/speech-to-text" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Speech to Text
+              </Link>
+              <Link href="/text-to-speech" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Text to Speech
+              </Link>
             </div>
-            <p className="text-gray-300 text-sm">
-              Breaking communication barriers through innovative technology.
-            </p>
-            <div className="mt-4 flex space-x-6">
-              {socialLinks.map((link) => (
-                <a 
-                  key={link.label}
-                  href="#" 
-                  className="text-gray-400 hover:text-white"
-                  aria-label={link.label}
-                >
-                  <link.icon className="h-6 w-6" />
-                </a>
-              ))}
+          </div>
+          <div className="flex flex-col gap-2">
+            <h4 className="text-sm font-semibold">Community</h4>
+            <div className="flex flex-col gap-1">
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <Github className="h-4 w-4" />
+                <span>GitHub</span>
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Twitter
+              </a>
+              <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Discord
+              </a>
             </div>
           </div>
-          
-          <div className="md:col-span-1">
-            <h3 className="text-sm font-semibold text-gray-200 tracking-wider uppercase">Features</h3>
-            <ul role="list" className="mt-4 space-y-4">
-              {footerLinks.features.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-base text-gray-300 hover:text-white">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          <div className="md:col-span-1">
-            <h3 className="text-sm font-semibold text-gray-200 tracking-wider uppercase">Support</h3>
-            <ul role="list" className="mt-4 space-y-4">
-              {footerLinks.support.map((link) => (
-                <li key={link.label}>
-                  <a href={link.href} className="text-base text-gray-300 hover:text-white">
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          <div className="md:col-span-1">
-            <h3 className="text-sm font-semibold text-gray-200 tracking-wider uppercase">Company</h3>
-            <ul role="list" className="mt-4 space-y-4">
-              {footerLinks.company.map((link) => (
-                <li key={link.label}>
-                  <a href={link.href} className="text-base text-gray-300 hover:text-white">
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <div className="flex flex-col gap-2">
+            <h4 className="text-sm font-semibold">Legal</h4>
+            <div className="flex flex-col gap-1">
+              <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Privacy
+              </Link>
+              <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Terms
+              </Link>
+            </div>
           </div>
         </div>
-        
-        <div className="mt-8 border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-base text-gray-400">&copy; {new Date().getFullYear()} SilentTalk, Inc. All rights reserved.</p>
-          <p className="text-base text-gray-400 mt-4 md:mt-0">Designed with ❤️ for accessibility</p>
-        </div>
+      </div>
+      <div className="container mt-8">
+        <p className="text-xs text-center text-muted-foreground">
+          © {new Date().getFullYear()} SilentTalk. All rights reserved.
+        </p>
       </div>
     </footer>
   );
