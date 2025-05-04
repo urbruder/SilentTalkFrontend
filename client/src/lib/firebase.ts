@@ -1,194 +1,80 @@
-// This is a mock version of Firebase authentication
-// It allows us to develop the auth UI without needing real Firebase credentials
+// client/src/lib/firebase.ts
 
-// Mock User type to match Firebase's User interface
-export interface User {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-  emailVerified: boolean;
-  getIdToken: () => Promise<string>;
-}
+import { initializeApp } from "firebase/app";
+import { getAuth, onAuthStateChanged,sendEmailVerification, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, getIdToken,updateProfile } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getAnalytics } from "firebase/analytics";
 
-// Mock storage for our "authenticated" user
-let currentUser: User | null = null;
-let authStateListeners: Array<(user: User | null) => void> = [];
-
-// Notify all listeners of auth state changes
-const notifyAuthStateChange = () => {
-  authStateListeners.forEach(listener => listener(currentUser));
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Create a mock user
-const createMockUser = (email: string, displayName?: string): User => {
-  return {
-    uid: `mock-uid-${Math.random().toString(36).substring(2, 10)}`,
-    email: email,
-    displayName: displayName || email.split('@')[0],
-    photoURL: null,
-    emailVerified: true,
-    getIdToken: async () => `mock-token-${Math.random().toString(36).substring(2, 10)}`
-  };
-};
 
-// Sign in with Google (popup)
-export const signInWithGoogle = async () => {
-  try {
-    // Simulate a delay for network request
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Create a mock user with a Google-like email
-    currentUser = createMockUser('user@gmail.com', 'Google User');
-    
-    // Notify listeners
-    notifyAuthStateChange();
-    
-    return currentUser;
-  } catch (error) {
-    console.error("Error signing in with Google:", error);
-    throw error;
-  }
-};
+const app = initializeApp(firebaseConfig);
 
-// Sign in with Google (redirect)
-export const signInWithGoogleRedirect = () => {
-  // In a real app, this would redirect. Here we'll just simulate the sign in
-  setTimeout(() => {
-    currentUser = createMockUser('redirect@gmail.com', 'Redirect User');
-    notifyAuthStateChange();
-  }, 500);
-};
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const analytics = getAnalytics(app);
 
-// Sign up with email and password
-export const signUpWithEmail = async (email: string, password: string, displayName: string) => {
-  try {
-    // Simulate a delay for network request
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Check if email already exists (mock validation)
-    if (email === 'exists@example.com') {
-      throw new Error('auth/email-already-in-use');
-    }
-    
-    // Create a mock user
-    currentUser = createMockUser(email, displayName);
-    
-    // Notify listeners
-    notifyAuthStateChange();
-    
-    return currentUser;
-  } catch (error) {
-    console.error("Error signing up with email:", error);
-    throw error;
-  }
-};
+// ✅ Authentication functions
 
-// Sign in with email and password
+// Sign in with email & password
 export const signInWithEmail = async (email: string, password: string) => {
-  try {
-    // Simulate a delay for network request
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Mock validation
-    if (email !== 'test@example.com' && password !== 'password123') {
-      throw new Error('auth/user-not-found');
+  const result = await signInWithEmailAndPassword(auth, email, password);
+  return result.user;
+};
+
+
+
+
+export const signUpWithEmail = async (email: string, password: string, displayName: string) => {
+  const result = await createUserWithEmailAndPassword(auth, email, password);
+
+  if (auth.currentUser) {
+    if (displayName) {
+      await updateProfile(auth.currentUser, { displayName });
     }
-    
-    // Create a mock user
-    currentUser = createMockUser(email);
-    
-    // Notify listeners
-    notifyAuthStateChange();
-    
-    return currentUser;
-  } catch (error) {
-    console.error("Error signing in with email:", error);
-    throw error;
+    await sendEmailVerification(auth.currentUser); // ✅ send verification
   }
+
+  return result.user;
+};
+
+// Google sign-in
+const provider = new GoogleAuthProvider();
+export const signInWithGoogle = async () => {
+  const result = await signInWithPopup(auth, provider);
+  return result.user;
 };
 
 // Reset password
 export const resetPassword = async (email: string) => {
-  try {
-    // Simulate a delay for network request
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Simply return success, no actual email is sent
-    return true;
-  } catch (error) {
-    console.error("Error sending password reset email:", error);
-    throw error;
-  }
+  await sendPasswordResetEmail(auth, email);
 };
 
 // Sign out
 export const logOut = async () => {
-  try {
-    // Simulate a delay for network request
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    // Clear current user
-    currentUser = null;
-    
-    // Notify listeners
-    notifyAuthStateChange();
-  } catch (error) {
-    console.error("Error signing out:", error);
-    throw error;
-  }
+  await signOut(auth);
 };
 
-// Listen for auth state changes
-export const subscribeToAuthChanges = (callback: (user: User | null) => void) => {
-  // Add the callback to our listeners
-  authStateListeners.push(callback);
-  
-  // Initial call with current auth state
-  callback(currentUser);
-  
-  // Return unsubscribe function
-  return () => {
-    authStateListeners = authStateListeners.filter(listener => listener !== callback);
-  };
+// Subscribe to auth changes
+export const subscribeToAuthChanges = (callback: (user: any | null) => void) => {
+  return onAuthStateChanged(auth, callback);
 };
 
 // Get current user
 export const getCurrentUser = () => {
-  return currentUser;
+  return auth.currentUser;
 };
 
-// Get current user's ID token
+// Get ID token
 export const getCurrentUserIdToken = async () => {
-  if (!currentUser) {
-    return null;
-  }
-  
-  try {
-    return await currentUser.getIdToken();
-  } catch (error) {
-    console.error("Error getting ID token:", error);
-    return null;
-  }
-};
-
-// Mock Firestore for compatibility
-export const db = {
-  collection: () => ({
-    doc: () => ({
-      get: async () => ({ exists: true, data: () => ({}) }),
-      set: async () => ({}),
-    }),
-  }),
-};
-
-// Mock Auth object for compatibility
-export const auth = {
-  currentUser,
-  onAuthStateChanged: subscribeToAuthChanges,
-};
-
-export default {
-  auth,
-  db,
+  const user = auth.currentUser;
+  return user ? await getIdToken(user) : null;
 };

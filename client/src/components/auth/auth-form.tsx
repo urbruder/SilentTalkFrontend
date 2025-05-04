@@ -11,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { logOut } from "@/lib/firebase"; // adjust path if needed
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -114,29 +116,40 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
   };
 
   // Handle register submit
-  const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
-    setIsLoading(true);
-    try {
-      await signUpWithEmail(values.email, values.password, values.name);
+const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
+  setIsLoading(true);
+  try {
+    const user = await signUpWithEmail(values.email, values.password, values.name);
+
+    if (!user.emailVerified) {
+      toast({
+        title: "Verify your email",
+        description: "A verification link has been sent. Please verify your email before logging in.",
+      });
+
+      await logOut(); // ✅ Prevent auto-login for unverified accounts
+    } else {
       toast({
         title: "Registration successful",
-        description: "Your account has been created successfully",
+        description: "Your account has been created and verified successfully.",
       });
       if (onSuccess) onSuccess();
-    } catch (error: any) {
-      let errorMessage = "Failed to create account. Please try again.";
-      if (error.message === "auth/email-already-in-use") {
-        errorMessage = "Email is already in use";
-      }
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+  } catch (error: any) {
+    let errorMessage = "Failed to create account. Please try again.";
+    if (error.code === "auth/email-already-in-use") {
+      errorMessage = "Email is already in use";
+    }
+    toast({
+      title: "Error",
+      description: errorMessage,
+      variant: "destructive",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Handle reset password submit
   const onResetSubmit = async (values: z.infer<typeof resetSchema>) => {
